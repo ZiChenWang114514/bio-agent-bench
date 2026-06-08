@@ -1,63 +1,367 @@
 # bio-agent-bench
 
-Small BioMysteryBench-inspired tasks for evaluating coding agents on practical
-bioinformatics analysis with real public GEO processed data.
+一个基于真实公开 GEO 已处理数据的小型生物信息学编程智能体评测。目标是测试智能体是否能在受控目录中读取数据、写脚本、做质控和统计分析、生成结果文件，并按固定 JSON 结构输出答案。
 
-The benchmark gives an agent a compact biological dataset, asks it to inspect
-the files from a terminal, write analysis code, generate QC/statistical
-artifacts, and return a fixed `submission.json`. Scoring combines hidden
-answers with lightweight checks on evidence, artifacts, and process logs.
+本仓库是公开仓库。原始 GEO 下载、隐藏答案和本地评分材料都放在被 `.gitignore` 忽略的目录中，不提交到 GitHub。
 
-This repository is public. Raw GEO downloads and hidden answer keys live under
-gitignored local directories and are not committed.
+## 最直接的测试方法
 
-## Task Families
+当前已经预创建好 8 个正式运行目录。你可以直接进入对应 `workspace/` 启动智能体。
+
+### 1. 进入某个工作目录
+
+DeepSeek / bulk 任务：
+
+```bash
+cd /data2/zcwang/homeworks/bio-agent-bench/runs/ccsds_bulk_001/geo_bulk_alms1_ko/workspace
+ccsds
+```
+
+Kimi / bulk 任务：
+
+```bash
+cd /data2/zcwang/homeworks/bio-agent-bench/runs/ccskm_bulk_001/geo_bulk_alms1_ko/workspace
+ccskm
+```
+
+Claude / bulk 任务：
+
+```bash
+cd /data2/zcwang/homeworks/bio-agent-bench/runs/vvcc_bulk_001/geo_bulk_alms1_ko/workspace
+vvcc
+```
+
+Codex / bulk 任务：
+
+```bash
+cd /data2/zcwang/homeworks/bio-agent-bench/runs/mycd_bulk_001/geo_bulk_alms1_ko/workspace
+mycd
+```
+
+scRNA 任务对应工作目录：
+
+```text
+/data2/zcwang/homeworks/bio-agent-bench/runs/ccsds_scrna_001/geo_scrna_nec_inflammation/workspace
+/data2/zcwang/homeworks/bio-agent-bench/runs/ccskm_scrna_001/geo_scrna_nec_inflammation/workspace
+/data2/zcwang/homeworks/bio-agent-bench/runs/vvcc_scrna_001/geo_scrna_nec_inflammation/workspace
+/data2/zcwang/homeworks/bio-agent-bench/runs/mycd_scrna_001/geo_scrna_nec_inflammation/workspace
+```
+
+### 2. 把这个提示词粘贴给智能体
+
+```text
+你正在一个闭卷生物信息学评测工作目录中工作。
+
+请先阅读 ../task/prompt.md。只能使用 ../task 下的文件和当前工作目录。不要查看仓库根目录、docs、.hidden、data/raw_geo、git 历史，也不要使用互联网。不要根据 GEO 编号或数据来源说明推断标签；必须直接分析给定数据。
+
+所有输出都写到当前目录。
+
+你必须创建：
+1. submission.json，并符合 ../task/expected_output.schema.json
+2. 至少一个可运行的分析脚本
+3. 至少一个非空的图或表结果文件，并在 submission.json 中列出
+
+结束前请验证 submission.json 存在，并且 submission.json 中列出的每个结果文件路径都真实存在。
+```
+
+智能体完成后，`workspace/` 至少应有：
+
+```text
+analysis.py
+submission.json
+一个或多个 .png/.pdf/.tsv/.csv 结果文件
+```
+
+### 3. 回到仓库根目录评分
+
+bulk 示例：
+
+```bash
+cd /data2/zcwang/homeworks/bio-agent-bench
+
+scripts/score_run_container.sh \
+  --task geo_bulk_alms1_ko \
+  --run-id ccsds_bulk_001
+
+cat runs/ccsds_bulk_001/geo_bulk_alms1_ko/workspace/score.json
+```
+
+scRNA 示例：
+
+```bash
+cd /data2/zcwang/homeworks/bio-agent-bench
+
+scripts/score_run_container.sh \
+  --task geo_scrna_nec_inflammation \
+  --run-id ccsds_scrna_001
+
+cat runs/ccsds_scrna_001/geo_scrna_nec_inflammation/workspace/score.json
+```
+
+只需要把 `--run-id` 换成对应模型即可，例如 `ccskm_bulk_001`、`vvcc_scrna_001`、`mycd_bulk_001`。
+
+## 本机智能体命令
+
+| 命令 | 实际用途 | 建议对比标签 |
+|---|---|---|
+| `ccsds` | 通过 DeepSeek V4 服务运行 Claude Code | `deepseek` |
+| `ccskm` | 通过 Kimi/Moonshot 服务运行 Claude Code | `kimi` |
+| `vvcc` | 通过本地 VVCC 代理运行 Claude Code | `claude` |
+| `mycd` | Codex 命令行封装 | `codex` |
+
+这些命令需要访问各自模型服务，所以不直接放进 `--network none` 的 Docker 智能体容器里跑。实际测试时使用 `runs/<run-id>/<task>/workspace` 作为干净工作目录，让智能体只能按提示使用 `../task` 和当前目录。
+
+不要从仓库根目录启动智能体。否则智能体可能看到 `docs/`、原始 GEO 下载、本地隐藏答案或 git 历史。
+
+## 已预创建的运行目录
+
+bulk 任务：
+
+```text
+runs/ccsds_bulk_001/geo_bulk_alms1_ko/
+runs/ccskm_bulk_001/geo_bulk_alms1_ko/
+runs/vvcc_bulk_001/geo_bulk_alms1_ko/
+runs/mycd_bulk_001/geo_bulk_alms1_ko/
+```
+
+scRNA 任务：
+
+```text
+runs/ccsds_scrna_001/geo_scrna_nec_inflammation/
+runs/ccskm_scrna_001/geo_scrna_nec_inflammation/
+runs/vvcc_scrna_001/geo_scrna_nec_inflammation/
+runs/mycd_scrna_001/geo_scrna_nec_inflammation/
+```
+
+每个运行目录下都有：
+
+```text
+task/
+workspace/
+```
+
+`task/` 是只读任务包，包含：
+
+```text
+prompt.md
+expected_output.schema.json
+public_notes.md
+data/
+```
+
+`workspace/` 是智能体输出目录。正式运行的 `workspace/` 初始为空。
+
+## 重新创建运行目录
+
+如果要重新生成某个运行目录，使用：
+
+```bash
+cd /data2/zcwang/homeworks/bio-agent-bench
+
+scripts/run_task_container.sh \
+  --task geo_bulk_alms1_ko \
+  --run-id ccsds_bulk_001 \
+  --command "true"
+```
+
+scRNA：
+
+```bash
+scripts/run_task_container.sh \
+  --task geo_scrna_nec_inflammation \
+  --run-id ccsds_scrna_001 \
+  --command "true"
+```
+
+注意：这个命令会重建该运行的 `task/` 任务包；`workspace/` 目录会保留，应手动确认是否需要清空旧输出。
+
+## 建议运行矩阵
+
+```bash
+# bulk 任务
+scripts/run_task_container.sh --task geo_bulk_alms1_ko --run-id ccsds_bulk_001 --command "true"
+scripts/run_task_container.sh --task geo_bulk_alms1_ko --run-id ccskm_bulk_001 --command "true"
+scripts/run_task_container.sh --task geo_bulk_alms1_ko --run-id vvcc_bulk_001 --command "true"
+scripts/run_task_container.sh --task geo_bulk_alms1_ko --run-id mycd_bulk_001 --command "true"
+
+# scRNA 任务
+scripts/run_task_container.sh --task geo_scrna_nec_inflammation --run-id ccsds_scrna_001 --command "true"
+scripts/run_task_container.sh --task geo_scrna_nec_inflammation --run-id ccskm_scrna_001 --command "true"
+scripts/run_task_container.sh --task geo_scrna_nec_inflammation --run-id vvcc_scrna_001 --command "true"
+scripts/run_task_container.sh --task geo_scrna_nec_inflammation --run-id mycd_scrna_001 --command "true"
+```
+
+然后分别进入每个 `workspace/` 启动对应智能体。
+
+## 任务列表
 
 ### `geo_bulk_alms1_ko`
 
-Input files:
+数据来自 GEO 系列 GSE209844 的已处理 bulk RNA-seq 文件。任务包中样本标签已盲化。
 
-- `counts.tsv`: raw counts from GSE209844, genes by blinded samples.
-- `rlog.tsv`: DESeq2 rlog-normalized expression.
-- `sample_sheet.tsv`: blinded sample group metadata.
-- `gene_annotations.tsv`: Ensembl IDs and symbols.
+输入文件：
 
-Question:
+- `counts.tsv`：原始计数矩阵，基因 × 盲化样本。
+- `rlog.tsv`：DESeq2 rlog 归一化表达矩阵。
+- `sample_sheet.tsv`：盲化样本组和重复编号。
+- `gene_annotations.tsv`：Ensembl 基因 ID 和基因符号。
 
-> One blinded group is ALMS1 knockout and the other is wild type. Determine
-> which blinded group is the knockout group.
+问题：
 
-Expected agent behavior:
+> 两个盲化组中，一个是 ALMS1 敲除组，一个是野生型组。判断哪个 `blinded_group` 是 ALMS1 敲除组。
 
-- Load the matrix and metadata from the terminal.
-- Run QC and at least one statistical comparison or variance/effect analysis.
-- Save an analysis script and at least one plot or table.
-- Emit `submission.json`.
+期望智能体行为：
+
+- 用终端读取表达矩阵和元数据。
+- 写分析脚本。
+- 比较 ALMS1 表达或组间差异。
+- 生成至少一个 QC/统计结果文件。
+- 输出符合 JSON 结构约束的 `submission.json`。
 
 ### `geo_scrna_nec_inflammation`
 
-Input files:
+数据来自 GEO 系列 GSE178088 的已处理 `.h5ad` 文件。原始样本和队列名称已盲化。
 
-- `adata.h5ad`: blinded single-cell object from GSE178088.
-- `metadata.tsv`: exported blinded cell metadata.
-- `sample_sheet.tsv`: blinded sample-level cell counts.
-- `gene_annotations.tsv`: gene symbols.
+输入文件：
 
-Question:
+- `adata.h5ad`：单细胞表达对象。
+- `metadata.tsv`：从 `adata.obs` 导出的细胞级元数据。
+- `sample_sheet.tsv`：盲化样本的细胞数汇总。
+- `gene_annotations.tsv`：基因符号。
 
-> Which blinded cohort shows the strongest inflammation-associated abnormality?
+问题：
 
-Expected agent behavior:
+> 哪个盲化队列表现出最强的炎症相关异常？
 
-- Read the `.h5ad` file with `anndata`.
-- Compute basic QC and group-level expression summaries.
-- Save an analysis script and at least one plot or table.
-- Emit `submission.json`.
+期望智能体行为：
 
-## Install
+- 用 `anndata` 或等价方法读取 `.h5ad`。
+- 按 `blinded_cohort` 汇总 QC 和标记基因表达。
+- 使用炎症标记基因，例如 `IL1B`、`CXCL8`、`S100A8`、`S100A9`、`TREM1`。
+- 生成至少一个 QC/统计结果文件。
+- 输出符合 JSON 结构约束的 `submission.json`。
 
-Use an isolated environment. The default conda base on some machines may contain
-mixed NumPy wheels, so a venv is safer.
+## 提交格式
+
+智能体必须写出一个 JSON 对象，文件名为：
+
+```text
+submission.json
+```
+
+顶层字段固定为：
+
+- `task_id`
+- `answer`
+- `confidence`
+- `evidence`
+- `artifacts`
+- `commands_summary`
+
+每个任务的完整 JSON 结构约束在：
+
+```text
+tasks/<task_id>/expected_output.schema.json
+```
+
+## 评分方法
+
+评分是程序化隐藏答案评分，不使用 LLM 裁判。
+
+默认总分 100：
+
+- `answer`：50 分
+  - `anomaly_type` 正确：25 分
+  - `anomalous_group` 正确：25 分
+- `evidence`：20 分
+  - `evidence` 条目数量和 `key_statistics` 数值统计量。
+- `artifacts`：15 分
+  - 检查 `submission.json` 中列出的结果文件是否真实存在且非空。
+- `process`：15 分
+  - 检查 `commands_summary` 和可选过程日志中是否有实际分析痕迹。
+
+评分脚本：
+
+```bash
+scripts/score_run_container.sh \
+  --task geo_bulk_alms1_ko \
+  --run-id ccsds_bulk_001
+```
+
+直接调用评分器也可以：
+
+```bash
+python scripts/score_submission.py \
+  --task-root tasks/geo_bulk_alms1_ko/data/public_geo \
+  --submission examples/baseline_outputs/geo_bulk/submission.json \
+  --answer .hidden/geo_answers/geo_bulk_alms1_ko_answer.hidden.json
+```
+
+隐藏答案位于 `.hidden/geo_answers/`，不会提交到 GitHub，也不会挂载给智能体。
+
+## 可选：记录过程日志
+
+如果终端支持，可以用 `script` 记录交互过程：
+
+```bash
+cd runs/ccsds_bulk_001/geo_bulk_alms1_ko/workspace
+script -q -f process.log -c "ccsds"
+```
+
+评分时传入过程日志：
+
+```bash
+cd /data2/zcwang/homeworks/bio-agent-bench
+
+scripts/score_run_container.sh \
+  --task geo_bulk_alms1_ko \
+  --run-id ccsds_bulk_001 \
+  --process-log runs/ccsds_bulk_001/geo_bulk_alms1_ko/workspace/process.log
+```
+
+## Docker 沙箱
+
+构建智能体和评分器镜像：
+
+```bash
+scripts/build_docker_images.sh
+```
+
+生成闭卷任务包：
+
+```bash
+scripts/run_task_container.sh \
+  --task geo_bulk_alms1_ko \
+  --run-id model_a_bulk \
+  --command "true"
+```
+
+如果只想进入 Docker 智能体沙箱：
+
+```bash
+scripts/run_task_container.sh \
+  --task geo_bulk_alms1_ko \
+  --run-id model_a_bulk
+```
+
+评分：
+
+```bash
+scripts/score_run_container.sh \
+  --task geo_bulk_alms1_ko \
+  --run-id model_a_bulk
+```
+
+规范配置在：
+
+```text
+benchmark.yaml
+docs/sandbox.md
+```
+
+## 安装本地 Python 环境
+
+建议使用隔离环境。某些 conda base 环境可能有 NumPy ABI 混用问题。
 
 ```bash
 python -m venv .venv
@@ -66,9 +370,17 @@ python -m pip install -U pip
 python -m pip install -e ".[dev]"
 ```
 
-## Prepare GEO Data
+运行测试：
 
-Download raw GEO supplementary files into `data/raw_geo/`:
+```bash
+.venv/bin/python -m pytest
+```
+
+## 准备 GEO 数据
+
+仓库已经提交了处理后的盲化公开任务数据。只有在你要从原始 GEO 补充文件重新生成任务包时，才需要执行本节。
+
+下载原始 GEO 补充文件到 `data/raw_geo/`：
 
 ```bash
 mkdir -p data/raw_geo/GSE209844 data/raw_geo/GSE178088
@@ -82,277 +394,20 @@ curl -L -o data/raw_geo/GSE178088/GSE178088_cluster3.h5ad.gz \
   https://ftp.ncbi.nlm.nih.gov/geo/series/GSE178nnn/GSE178088/suppl/GSE178088_cluster3.h5ad.gz
 ```
 
-Prepare blinded public task packs and local hidden answer keys:
+重新生成盲化任务数据和本地隐藏答案：
 
 ```bash
 python scripts/prepare_geo_tasks.py
 ```
 
-## Validate And Score
+`data/raw_geo/` 和 `.hidden/` 都被 gitignore，不会提交。
 
-Validate a submission:
-
-```bash
-python scripts/validate_json.py \
-  --submission examples/baseline_outputs/geo_bulk/submission.json
-```
-
-Score with a local hidden answer key:
-
-```bash
-python scripts/score_submission.py \
-  --task-root tasks/geo_bulk_alms1_ko/data/public_geo \
-  --submission examples/baseline_outputs/geo_bulk/submission.json \
-  --answer .hidden/geo_answers/geo_bulk_alms1_ko_answer.hidden.json
-```
-
-## Submission Format
-
-Agents must write a JSON object with these top-level fields:
-
-- `task_id`
-- `answer`
-- `confidence`
-- `evidence`
-- `artifacts`
-- `commands_summary`
-
-See `tasks/*/expected_output.schema.json` for the exact schema.
-
-## Docker Sandbox
-
-Build the predefined agent/evaluator images:
-
-```bash
-scripts/build_docker_images.sh
-```
-
-Run a closed-book agent sandbox:
-
-```bash
-scripts/run_task_container.sh \
-  --task geo_bulk_alms1_ko \
-  --run-id model_a_bulk
-```
-
-Score the resulting `/workspace/submission.json` with hidden answers:
-
-```bash
-scripts/score_run_container.sh \
-  --task geo_bulk_alms1_ko \
-  --run-id model_a_bulk
-```
-
-The canonical sandbox settings are in `benchmark.yaml`; details are in
-`docs/sandbox.md`.
-
-## 使用本地 Coding Agent
-
-本节说明如何用本机的 `ccsds`、`ccskm`、`vvcc`、`mycd` 跑这个 benchmark。
-
-不要从仓库根目录直接启动这些 agent。它们如果在仓库根目录工作，理论上能看到整个工作树，包括 docs、raw GEO 下载和本地 hidden 文件。正确流程是：先创建一个干净的 task bundle，再从该 run 的 writable workspace 启动 agent。
-
-### 本机 Agent 命令
-
-本机可用于对比的命令如下：
-
-| 命令 | Agent/Product | 建议对比标签 |
-|---|---|---|
-| `ccsds` | Claude Code via DeepSeek V4 provider | `deepseek` |
-| `ccskm` | Claude Code via Kimi/Moonshot provider | `kimi` |
-| `vvcc` | Claude Code via local VVCC proxy wrapper | `claude` |
-| `mycd` | Codex CLI wrapper | `codex` |
-
-这些命令需要访问各自的模型服务，因此不能直接放进 `--network none` 的 Docker agent 容器里运行。这里采用折中但可审计的方式：benchmark 脚本先在 `runs/` 下生成一个干净目录，agent 只在这个目录中工作。
-
-### 第一步：创建干净 Run 目录
-
-从仓库根目录执行：
-
-```bash
-cd /data2/zcwang/homeworks/bio-agent-bench
-
-scripts/run_task_container.sh \
-  --task geo_bulk_alms1_ko \
-  --run-id ccsds_bulk_001 \
-  --command "true"
-```
-
-这会创建：
-
-```text
-runs/ccsds_bulk_001/geo_bulk_alms1_ko/task/
-runs/ccsds_bulk_001/geo_bulk_alms1_ko/workspace/
-```
-
-`task/` 目录只包含 closed-book task bundle：
-
-```text
-prompt.md
-expected_output.schema.json
-public_notes.md
-data/
-```
-
-`workspace/` 是 agent 的工作目录，所有输出都应写到这里。
-
-### 第二步：从 Workspace 启动 Agent
-
-DeepSeek via Claude Code：
-
-```bash
-cd /data2/zcwang/homeworks/bio-agent-bench/runs/ccsds_bulk_001/geo_bulk_alms1_ko/workspace
-ccsds
-```
-
-Kimi via Claude Code：
-
-```bash
-cd /data2/zcwang/homeworks/bio-agent-bench
-scripts/run_task_container.sh --task geo_bulk_alms1_ko --run-id ccskm_bulk_001 --command "true"
-cd runs/ccskm_bulk_001/geo_bulk_alms1_ko/workspace
-ccskm
-```
-
-Claude Code via VVCC wrapper：
-
-```bash
-cd /data2/zcwang/homeworks/bio-agent-bench
-scripts/run_task_container.sh --task geo_bulk_alms1_ko --run-id vvcc_bulk_001 --command "true"
-cd runs/vvcc_bulk_001/geo_bulk_alms1_ko/workspace
-vvcc
-```
-
-Codex：
-
-```bash
-cd /data2/zcwang/homeworks/bio-agent-bench
-scripts/run_task_container.sh --task geo_bulk_alms1_ko --run-id mycd_bulk_001 --command "true"
-cd runs/mycd_bulk_001/geo_bulk_alms1_ko/workspace
-mycd
-```
-
-如果要跑 scRNA 任务，只替换 task 和 run id：
-
-```bash
-scripts/run_task_container.sh \
-  --task geo_scrna_nec_inflammation \
-  --run-id ccsds_scrna_001 \
-  --command "true"
-
-cd runs/ccsds_scrna_001/geo_scrna_nec_inflammation/workspace
-ccsds
-```
-
-### 第三步：给 Agent 的统一 Prompt
-
-启动 agent 后，把下面这段直接粘贴进去：
-
-```text
-你正在一个 closed-book bioinformatics benchmark workspace 中工作。
-
-请先阅读 ../task/prompt.md。只能使用 ../task 下的文件和当前工作目录。不要查看仓库根目录、docs、.hidden、data/raw_geo、git history，也不要使用互联网。不要根据 GEO accession 或 source provenance 推断标签；必须直接分析给定数据。
-
-所有输出都写到当前目录。
-
-你必须创建：
-1. submission.json，并符合 ../task/expected_output.schema.json
-2. 至少一个可运行的分析脚本
-3. 至少一个非空的图或表 artifact，并在 submission.json 中列出
-
-结束前请验证 submission.json 存在，并且 submission.json 中列出的每个 artifact 路径都真实存在。
-```
-
-理想情况下，最终 workspace 至少包含：
-
-```text
-analysis.py
-submission.json
-<一个或多个 .png/.pdf/.tsv/.csv artifacts>
-```
-
-### 第四步：评分
-
-agent 完成后，回到仓库根目录，用 evaluator sandbox 评分：
-
-```bash
-cd /data2/zcwang/homeworks/bio-agent-bench
-
-scripts/score_run_container.sh \
-  --task geo_bulk_alms1_ko \
-  --run-id ccsds_bulk_001
-```
-
-分数会写到：
-
-```text
-runs/ccsds_bulk_001/geo_bulk_alms1_ko/workspace/score.json
-```
-
-scRNA 任务对应：
-
-```bash
-scripts/score_run_container.sh \
-  --task geo_scrna_nec_inflammation \
-  --run-id ccsds_scrna_001
-```
-
-### 建议 Run Matrix
-
-建议使用统一的 run id，方便后续汇总和审计：
-
-```bash
-# bulk
-scripts/run_task_container.sh --task geo_bulk_alms1_ko --run-id ccsds_bulk_001 --command "true"
-scripts/run_task_container.sh --task geo_bulk_alms1_ko --run-id ccskm_bulk_001 --command "true"
-scripts/run_task_container.sh --task geo_bulk_alms1_ko --run-id vvcc_bulk_001 --command "true"
-scripts/run_task_container.sh --task geo_bulk_alms1_ko --run-id mycd_bulk_001 --command "true"
-
-# scRNA
-scripts/run_task_container.sh --task geo_scrna_nec_inflammation --run-id ccsds_scrna_001 --command "true"
-scripts/run_task_container.sh --task geo_scrna_nec_inflammation --run-id ccskm_scrna_001 --command "true"
-scripts/run_task_container.sh --task geo_scrna_nec_inflammation --run-id vvcc_scrna_001 --command "true"
-scripts/run_task_container.sh --task geo_scrna_nec_inflammation --run-id mycd_scrna_001 --command "true"
-```
-
-然后分别进入每个 workspace，启动对应的 agent 命令。
-
-### 可选：记录 Process Log
-
-如果终端支持，可以用 `script` 记录交互过程：
-
-```bash
-cd runs/ccsds_bulk_001/geo_bulk_alms1_ko/workspace
-script -q -f process.log -c "ccsds"
-```
-
-评分时把 log 一起传入：
-
-```bash
-scripts/score_run_container.sh \
-  --task geo_bulk_alms1_ko \
-  --run-id ccsds_bulk_001 \
-  --process-log runs/ccsds_bulk_001/geo_bulk_alms1_ko/workspace/process.log
-```
-
-### 重要对比规则
+## 重要对比规则
 
 - 每个模型和任务使用一个新的 `--run-id`。
-- 不要从仓库根目录启动 agent。
-- 不要把 `.hidden/`、`data/raw_geo/`、`docs/data_sources.md` 提供给 agent。
-- 不要把 closed-book 和 open-world run 混在同一张分数表里。
-- 所有被比较的 agent 应使用同一份 task bundle、同一套 timeout 策略、同一个 scorer commit 和同一个 hidden answer 文件。
-- 如果 agent 因为“不能访问互联网”而拒绝，仍然从 sanitized workspace 正常启动本地 wrapper；agent 可以访问自己的模型服务，但不应该浏览外部数据源。
-
-## Scoring
-
-Default total: 100 points.
-
-- Answer correctness: 50
-- Evidence quality: 20
-- Artifact presence: 15
-- Process trace: 15
-
-The public scorer is intentionally lightweight. Hidden scoring can use stricter
-answer normalization and stronger artifact/log checks while preserving the same
-JSON interface.
+- 不要从仓库根目录启动智能体。
+- 不要把 `.hidden/`、`data/raw_geo/`、`docs/data_sources.md` 提供给智能体。
+- 不要把闭卷运行和开放世界运行混在同一张分数表里。
+- 所有被比较的智能体应使用同一份任务包、同一套超时策略、同一个评分脚本提交版本和同一个隐藏答案文件。
+- 智能体可以访问自己的模型服务，但不应该浏览外部数据源。
+- 如果要测允许联网检索的开放世界智能体，应单独建立排行榜。
