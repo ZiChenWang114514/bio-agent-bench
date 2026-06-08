@@ -1,7 +1,8 @@
 # Public Notes
 
-This task uses processed supplementary files from GEO series GSE178088. Original
-sample and cohort labels were blinded in the benchmark data pack.
+This task uses processed public single-cell data with source identifiers
+removed from the benchmark data pack. Original sample and cohort labels were
+blinded.
 
 Useful analysis routes:
 
@@ -10,6 +11,6 @@ Useful analysis routes:
 - Score inflammation-associated marker genes by cohort.
 - Use PCA or cluster-level summaries as supporting artifacts.
 
-Do not rely on file names or internet lookup alone; process scoring expects
-evidence that the h5ad file was actually read and analyzed.
-
+Do not rely on file names, source lookup, or memorized dataset provenance;
+process scoring expects evidence that the h5ad file was actually read and
+analyzed.

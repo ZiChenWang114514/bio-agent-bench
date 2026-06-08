@@ -1,7 +1,8 @@
 # Task: geo_bulk_alms1_ko
 
-You are given a blinded, GEO-derived bulk RNA-seq dataset from a two-group
-ALMS1 perturbation experiment.
+You are given a blinded bulk RNA-seq dataset from a two-group ALMS1
+perturbation experiment. Source identifiers have been removed; solve the task
+from the provided matrices, not from provenance lookup.
 
 Files:
 
@@ -31,4 +32,3 @@ Requirements:
 - Generate at least one QC/statistical artifact.
 - Include expression evidence involving ALMS1 or group-level differential
   expression.
-

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import anndata as ad
@@ -41,4 +42,24 @@ def test_baseline_submissions_match_schema() -> None:
 
 def test_closed_book_task_data_excludes_source_provenance() -> None:
     leaked = list((ROOT / "tasks").rglob("source_provenance.json"))
+    assert leaked == []
+
+
+def test_closed_book_task_text_excludes_geo_accessions() -> None:
+    forbidden_patterns = (
+        re.compile(r"\bGSE\d{3,}\b"),
+        re.compile(r"\bGSM\d{3,}\b"),
+        re.compile(r"\bSRP\d{3,}\b"),
+        re.compile(r"\bSRR\d{3,}\b"),
+        re.compile(r"source_provenance"),
+    )
+    checked_suffixes = {".md", ".json", ".tsv", ".txt"}
+    leaked: list[str] = []
+    for path in (ROOT / "tasks").rglob("*"):
+        if not path.is_file() or path.suffix not in checked_suffixes:
+            continue
+        text = path.read_text(errors="ignore")
+        for pattern in forbidden_patterns:
+            if pattern.search(text):
+                leaked.append(f"{path.relative_to(ROOT)} matches {pattern.pattern}")
     assert leaked == []

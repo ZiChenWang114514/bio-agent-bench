@@ -1,7 +1,7 @@
 # Public Notes
 
-This task uses processed supplementary files from GEO series GSE209844. Original
-sample labels were blinded in the benchmark data pack.
+This task uses processed public sequencing data with source identifiers removed
+from the benchmark data pack. Original sample labels were blinded.
 
 Useful analysis routes:
 
@@ -9,6 +9,6 @@ Useful analysis routes:
 - Compute genome-wide group effects on the rlog matrix.
 - Use PCA or clustering as a QC artifact.
 
-Do not rely on file names or internet lookup alone; process scoring expects
-evidence that the expression matrices were actually read and analyzed.
-
+Do not rely on file names, source lookup, or memorized dataset provenance;
+process scoring expects evidence that the expression matrices were actually
+read and analyzed.

@@ -1,7 +1,8 @@
 # Task: geo_scrna_nec_inflammation
 
-You are given a blinded, GEO-derived single-cell RNA-seq dataset from human
-intestinal tissue.
+You are given a blinded single-cell RNA-seq dataset from human intestinal
+tissue. Source identifiers have been removed; solve the task from the provided
+data object and metadata, not from provenance lookup.
 
 Files:
 
@@ -29,4 +30,3 @@ Requirements:
 - Generate at least one QC/statistical artifact.
 - Include evidence from inflammatory markers such as `IL1B`, `CXCL8`,
   `S100A8`, `S100A9`, or `TREM1`.
-
