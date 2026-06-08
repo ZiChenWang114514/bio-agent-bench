@@ -146,35 +146,28 @@ scripts/score_run_container.sh \
 The canonical sandbox settings are in `benchmark.yaml`; details are in
 `docs/sandbox.md`.
 
-## Running Local Coding Agents
+## 使用本地 Coding Agent
 
-This is the recommended workflow for local agent commands such as `ccsds`,
-`ccskm`, `vvcc`, and `mycd`.
+本节说明如何用本机的 `ccsds`、`ccskm`、`vvcc`、`mycd` 跑这个 benchmark。
 
-Do **not** launch these agents from the repository root. They can see the whole
-working tree if started there, including docs, raw GEO downloads, and local
-hidden files. Instead, first create a sanitized task bundle, then start the
-agent from that run's writable workspace.
+不要从仓库根目录直接启动这些 agent。它们如果在仓库根目录工作，理论上能看到整个工作树，包括 docs、raw GEO 下载和本地 hidden 文件。正确流程是：先创建一个干净的 task bundle，再从该 run 的 writable workspace 启动 agent。
 
-### Local Agent Commands
+### 本机 Agent 命令
 
-The commands used on this machine are:
+本机可用于对比的命令如下：
 
-| Command | Agent/Product | Intended comparison label |
+| 命令 | Agent/Product | 建议对比标签 |
 |---|---|---|
 | `ccsds` | Claude Code via DeepSeek V4 provider | `deepseek` |
 | `ccskm` | Claude Code via Kimi/Moonshot provider | `kimi` |
-| `vvcc` | Claude Code via the local VVCC proxy wrapper | `claude` |
+| `vvcc` | Claude Code via local VVCC proxy wrapper | `claude` |
 | `mycd` | Codex CLI wrapper | `codex` |
 
-These commands need outbound network access to their model providers. Therefore
-they are not launched inside the `--network none` Docker agent container.
-Instead, the benchmark scripts create a clean task directory under `runs/`, and
-the agent is instructed to use only that directory.
+这些命令需要访问各自的模型服务，因此不能直接放进 `--network none` 的 Docker agent 容器里运行。这里采用折中但可审计的方式：benchmark 脚本先在 `runs/` 下生成一个干净目录，agent 只在这个目录中工作。
 
-### Step 1: Create A Sanitized Run Directory
+### 第一步：创建干净 Run 目录
 
-From the repository root:
+从仓库根目录执行：
 
 ```bash
 cd /data2/zcwang/homeworks/bio-agent-bench
@@ -185,14 +178,14 @@ scripts/run_task_container.sh \
   --command "true"
 ```
 
-This creates:
+这会创建：
 
 ```text
 runs/ccsds_bulk_001/geo_bulk_alms1_ko/task/
 runs/ccsds_bulk_001/geo_bulk_alms1_ko/workspace/
 ```
 
-The `task/` directory contains only the closed-book task bundle:
+`task/` 目录只包含 closed-book task bundle：
 
 ```text
 prompt.md
@@ -201,18 +194,18 @@ public_notes.md
 data/
 ```
 
-The `workspace/` directory is where the agent writes all outputs.
+`workspace/` 是 agent 的工作目录，所有输出都应写到这里。
 
-### Step 2: Start The Agent From The Workspace
+### 第二步：从 Workspace 启动 Agent
 
-For DeepSeek via Claude Code:
+DeepSeek via Claude Code：
 
 ```bash
 cd /data2/zcwang/homeworks/bio-agent-bench/runs/ccsds_bulk_001/geo_bulk_alms1_ko/workspace
 ccsds
 ```
 
-For Kimi via Claude Code:
+Kimi via Claude Code：
 
 ```bash
 cd /data2/zcwang/homeworks/bio-agent-bench
@@ -221,7 +214,7 @@ cd runs/ccskm_bulk_001/geo_bulk_alms1_ko/workspace
 ccskm
 ```
 
-For Claude Code through the VVCC wrapper:
+Claude Code via VVCC wrapper：
 
 ```bash
 cd /data2/zcwang/homeworks/bio-agent-bench
@@ -230,7 +223,7 @@ cd runs/vvcc_bulk_001/geo_bulk_alms1_ko/workspace
 vvcc
 ```
 
-For Codex:
+Codex：
 
 ```bash
 cd /data2/zcwang/homeworks/bio-agent-bench
@@ -239,7 +232,7 @@ cd runs/mycd_bulk_001/geo_bulk_alms1_ko/workspace
 mycd
 ```
 
-For the scRNA task, replace the task and run id:
+如果要跑 scRNA 任务，只替换 task 和 run id：
 
 ```bash
 scripts/run_task_container.sh \
@@ -251,40 +244,36 @@ cd runs/ccsds_scrna_001/geo_scrna_nec_inflammation/workspace
 ccsds
 ```
 
-### Step 3: Prompt To Give The Agent
+### 第三步：给 Agent 的统一 Prompt
 
-Paste this into the coding agent:
+启动 agent 后，把下面这段直接粘贴进去：
 
 ```text
-You are in a closed-book bioinformatics benchmark workspace.
+你正在一个 closed-book bioinformatics benchmark workspace 中工作。
 
-Read ../task/prompt.md first. Use only files under ../task and the current
-working directory. Do not inspect the repository root, docs, .hidden,
-data/raw_geo, git history, or the internet. Do not infer labels from GEO
-accessions or source provenance. Analyze the provided data directly.
+请先阅读 ../task/prompt.md。只能使用 ../task 下的文件和当前工作目录。不要查看仓库根目录、docs、.hidden、data/raw_geo、git history，也不要使用互联网。不要根据 GEO accession 或 source provenance 推断标签；必须直接分析给定数据。
 
-Write all outputs in the current directory.
+所有输出都写到当前目录。
 
-You must create:
-1. submission.json following ../task/expected_output.schema.json
-2. at least one runnable analysis script
-3. at least one non-empty plot or table artifact listed in submission.json
+你必须创建：
+1. submission.json，并符合 ../task/expected_output.schema.json
+2. 至少一个可运行的分析脚本
+3. 至少一个非空的图或表 artifact，并在 submission.json 中列出
 
-Before finishing, verify that submission.json exists and every artifact path
-listed in it exists.
+结束前请验证 submission.json 存在，并且 submission.json 中列出的每个 artifact 路径都真实存在。
 ```
 
-The expected final workspace should look roughly like:
+理想情况下，最终 workspace 至少包含：
 
 ```text
 analysis.py
 submission.json
-<one or more .png/.pdf/.tsv/.csv artifacts>
+<一个或多个 .png/.pdf/.tsv/.csv artifacts>
 ```
 
-### Step 4: Score The Run
+### 第四步：评分
 
-Return to the repository root and score with the evaluator sandbox:
+agent 完成后，回到仓库根目录，用 evaluator sandbox 评分：
 
 ```bash
 cd /data2/zcwang/homeworks/bio-agent-bench
@@ -294,13 +283,13 @@ scripts/score_run_container.sh \
   --run-id ccsds_bulk_001
 ```
 
-The score is written to:
+分数会写到：
 
 ```text
 runs/ccsds_bulk_001/geo_bulk_alms1_ko/workspace/score.json
 ```
 
-For scRNA:
+scRNA 任务对应：
 
 ```bash
 scripts/score_run_container.sh \
@@ -308,9 +297,9 @@ scripts/score_run_container.sh \
   --run-id ccsds_scrna_001
 ```
 
-### Suggested Run Matrix
+### 建议 Run Matrix
 
-Use consistent run ids so model comparisons are easy to audit:
+建议使用统一的 run id，方便后续汇总和审计：
 
 ```bash
 # bulk
@@ -326,18 +315,18 @@ scripts/run_task_container.sh --task geo_scrna_nec_inflammation --run-id vvcc_sc
 scripts/run_task_container.sh --task geo_scrna_nec_inflammation --run-id mycd_scrna_001 --command "true"
 ```
 
-Then enter each workspace and launch the corresponding agent command.
+然后分别进入每个 workspace，启动对应的 agent 命令。
 
-### Optional: Keep A Process Log
+### 可选：记录 Process Log
 
-If the terminal supports it, record the interactive session with `script`:
+如果终端支持，可以用 `script` 记录交互过程：
 
 ```bash
 cd runs/ccsds_bulk_001/geo_bulk_alms1_ko/workspace
 script -q -f process.log -c "ccsds"
 ```
 
-Then include the log in scoring:
+评分时把 log 一起传入：
 
 ```bash
 scripts/score_run_container.sh \
@@ -346,18 +335,14 @@ scripts/score_run_container.sh \
   --process-log runs/ccsds_bulk_001/geo_bulk_alms1_ko/workspace/process.log
 ```
 
-### Important Comparison Rules
+### 重要对比规则
 
-- Use a fresh `--run-id` for each model and task.
-- Do not launch agents from the repository root.
-- Do not provide `.hidden/`, `data/raw_geo/`, or `docs/data_sources.md` to the
-  agent.
-- Do not mix closed-book and open-world runs in the same score table.
-- Keep the same task bundle, timeout policy, scorer commit, and hidden answer
-  file across all compared agents.
-- If an agent refuses because it cannot access the internet, use the local
-  wrapper command normally from the sanitized workspace; the agent may contact
-  its model provider, but it should not browse external data sources.
+- 每个模型和任务使用一个新的 `--run-id`。
+- 不要从仓库根目录启动 agent。
+- 不要把 `.hidden/`、`data/raw_geo/`、`docs/data_sources.md` 提供给 agent。
+- 不要把 closed-book 和 open-world run 混在同一张分数表里。
+- 所有被比较的 agent 应使用同一份 task bundle、同一套 timeout 策略、同一个 scorer commit 和同一个 hidden answer 文件。
+- 如果 agent 因为“不能访问互联网”而拒绝，仍然从 sanitized workspace 正常启动本地 wrapper；agent 可以访问自己的模型服务，但不应该浏览外部数据源。
 
 ## Scoring
 
