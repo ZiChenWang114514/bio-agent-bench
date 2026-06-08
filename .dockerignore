@@ -1,0 +1,12 @@
+.git/
+.hidden/
+.venv/
+.pytest_cache/
+__pycache__/
+*.py[cod]
+data/raw_geo/
+examples/baseline_outputs/
+run_outputs/
+runs/
+src/*.egg-info/
+

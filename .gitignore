@@ -14,4 +14,5 @@ dist/
 # Local generated outputs
 examples/baseline_outputs/
 run_outputs/
+runs/
 data/raw_geo/

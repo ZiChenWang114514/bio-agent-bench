@@ -31,3 +31,7 @@ python scripts/prepare_geo_tasks.py
 
 The script writes blinded task packs under `tasks/*/data/public_geo` and hidden
 answer keys under `.hidden/geo_answers/`.
+
+Public task data should not include GEO accessions, original sample names, or
+source titles in closed-book mode. Put provenance in `.hidden/geo_answers/` or
+`docs/data_sources.md`, not inside the mounted agent task bundle.

@@ -1,0 +1,54 @@
+benchmark: bio-agent-bench
+version: 0.1.0
+default_mode: closed_book
+
+sandbox:
+  network: false
+  cpus: 4
+  memory: 16g
+  pids_limit: 512
+  read_only_rootfs: true
+  writable_paths:
+    - /workspace
+    - /tmp
+  agent_task_mount: /task
+  agent_output_mount: /workspace
+  evaluator_hidden_mount: /hidden
+
+images:
+  agent: bio-agent-bench-agent:latest
+  evaluator: bio-agent-bench-evaluator:latest
+
+required_outputs:
+  submission: submission.json
+  artifacts: at_least_one_nonempty_file_listed_in_submission
+
+scoring:
+  max_score: 100
+  answer: 50
+  evidence: 20
+  artifacts: 15
+  process: 15
+  scorer: scripts/score_submission.py
+
+tasks:
+  geo_bulk_alms1_ko:
+    prompt: tasks/geo_bulk_alms1_ko/prompt.md
+    schema: tasks/geo_bulk_alms1_ko/expected_output.schema.json
+    public_data: tasks/geo_bulk_alms1_ko/data/public_geo
+    hidden_answer: .hidden/geo_answers/geo_bulk_alms1_ko_answer.hidden.json
+    default_timeout_minutes: 30
+  geo_scrna_nec_inflammation:
+    prompt: tasks/geo_scrna_nec_inflammation/prompt.md
+    schema: tasks/geo_scrna_nec_inflammation/expected_output.schema.json
+    public_data: tasks/geo_scrna_nec_inflammation/data/public_geo
+    hidden_answer: .hidden/geo_answers/geo_scrna_nec_inflammation_answer.hidden.json
+    default_timeout_minutes: 45
+
+leakage_policy:
+  agent_gets_hidden_answers: false
+  agent_gets_raw_geo_downloads: false
+  agent_gets_repo_docs_by_default: false
+  agent_gets_geo_accessions_by_default: false
+  provenance_files_are_evaluator_only: true
+

@@ -119,6 +119,33 @@ Agents must write a JSON object with these top-level fields:
 
 See `tasks/*/expected_output.schema.json` for the exact schema.
 
+## Docker Sandbox
+
+Build the predefined agent/evaluator images:
+
+```bash
+scripts/build_docker_images.sh
+```
+
+Run a closed-book agent sandbox:
+
+```bash
+scripts/run_task_container.sh \
+  --task geo_bulk_alms1_ko \
+  --run-id model_a_bulk
+```
+
+Score the resulting `/workspace/submission.json` with hidden answers:
+
+```bash
+scripts/score_run_container.sh \
+  --task geo_bulk_alms1_ko \
+  --run-id model_a_bulk
+```
+
+The canonical sandbox settings are in `benchmark.yaml`; details are in
+`docs/sandbox.md`.
+
 ## Scoring
 
 Default total: 100 points.

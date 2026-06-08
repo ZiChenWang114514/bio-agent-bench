@@ -1,0 +1,29 @@
+FROM python:3.12-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    MPLBACKEND=Agg \
+    PIP_NO_CACHE_DIR=1
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    bash \
+    ca-certificates \
+    coreutils \
+    findutils \
+    git \
+    less \
+    nano \
+    procps \
+    ripgrep \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /opt/bio-agent-bench
+COPY pyproject.toml README.md LICENSE ./
+COPY src ./src
+RUN python -m pip install -U pip \
+    && python -m pip install ".[dev]"
+
+WORKDIR /workspace
+ENV HOME=/workspace
+CMD ["/bin/bash"]
+

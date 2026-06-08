@@ -38,3 +38,7 @@ def test_baseline_submissions_match_schema() -> None:
     if scrna.exists():
         validate_submission(scrna)
 
+
+def test_closed_book_task_data_excludes_source_provenance() -> None:
+    leaked = list((ROOT / "tasks").rglob("source_provenance.json"))
+    assert leaked == []

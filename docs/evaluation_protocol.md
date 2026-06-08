@@ -13,11 +13,15 @@ Give each agent:
 - Permission to use a terminal, write scripts, install Python packages if
   needed, and generate artifacts.
 
+For comparable scores, use the Docker protocol in `docs/sandbox.md` and the
+canonical settings in `benchmark.yaml`.
+
 Do not give the agent:
 
 - hidden answer JSON files.
 - `.hidden/` content.
 - Previous submissions or scorer output.
+- raw GEO downloads or provenance files in closed-book mode.
 
 ## Required Output
 

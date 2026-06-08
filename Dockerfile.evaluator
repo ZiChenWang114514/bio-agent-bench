@@ -1,0 +1,17 @@
+FROM python:3.12-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    MPLBACKEND=Agg \
+    PIP_NO_CACHE_DIR=1
+
+WORKDIR /opt/bio-agent-bench
+COPY pyproject.toml README.md LICENSE ./
+COPY src ./src
+COPY scripts ./scripts
+RUN python -m pip install -U pip \
+    && python -m pip install ".[dev]"
+
+WORKDIR /workspace
+ENTRYPOINT ["python", "/opt/bio-agent-bench/scripts/score_submission.py"]
+

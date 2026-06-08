@@ -141,7 +141,7 @@ def prepare_bulk_alms1_task(repo_root: str | Path) -> None:
         },
         "blinding": "Original sample labels were replaced with sample_01..sample_06 and group_alpha/group_beta.",
     }
-    _write_json(out_dir / "source_provenance.json", provenance)
+    _write_json(hidden_dir / "geo_bulk_alms1_ko_provenance.hidden.json", provenance)
 
     answer = {
         "task_id": "geo_bulk_alms1_ko",
@@ -233,7 +233,7 @@ def prepare_scrna_nec_task(repo_root: str | Path) -> None:
         "blinding": "Original sample and cohort labels were replaced with sample_XX and cohort_alpha/beta/gamma.",
         "marker_hint": "Inflammation-associated markers such as IL1B, CXCL8, S100A8, S100A9, and TREM1 are useful evidence.",
     }
-    _write_json(out_dir / "source_provenance.json", provenance)
+    _write_json(hidden_dir / "geo_scrna_nec_inflammation_provenance.hidden.json", provenance)
 
     answer = {
         "task_id": "geo_scrna_nec_inflammation",
