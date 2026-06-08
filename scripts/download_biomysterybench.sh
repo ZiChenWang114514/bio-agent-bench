@@ -12,7 +12,7 @@ Environment:
   HF_ENDPOINT       Hugging Face mirror endpoint. Default: https://hf-mirror.com
   BIOMYSTERY_FULL_ENDPOINT
                     Endpoint for the gated full dataset. Default:
-                    https://huggingface.co
+                    https://hf-mirror.com
   HF_TOKEN          Required for the gated full dataset.
 
 Notes:
@@ -78,7 +78,7 @@ case "${MODE}" in
       echo "  scripts/download_biomysterybench.sh full" >&2
       exit 1
     fi
-    ENDPOINT="${BIOMYSTERY_FULL_ENDPOINT:-https://huggingface.co}"
+    ENDPOINT="${BIOMYSTERY_FULL_ENDPOINT:-https://hf-mirror.com}"
     OUT="${ROOT}/full"
     mkdir -p "${OUT}"
     for path in README.md LICENSE problems.csv problems.parquet; do
