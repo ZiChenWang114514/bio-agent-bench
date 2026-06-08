@@ -1,0 +1,13 @@
+{
+  "geo_accession": "GSE178088",
+  "source_title": "CD16+ CD163+ monocytes traffic to sites of inflammation in NEC",
+  "source_url": "https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE178088",
+  "public_files": {
+    "adata": "adata.h5ad",
+    "metadata": "metadata.tsv",
+    "sample_sheet": "sample_sheet.tsv",
+    "gene_annotations": "gene_annotations.tsv"
+  },
+  "blinding": "Original sample and cohort labels were replaced with sample_XX and cohort_alpha/beta/gamma.",
+  "marker_hint": "Inflammation-associated markers such as IL1B, CXCL8, S100A8, S100A9, and TREM1 are useful evidence."
+}

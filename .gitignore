@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+build/
+dist/
+*.egg-info/
+
+# Private benchmark packs and answer keys
+.hidden/
+
+# Local generated outputs
+examples/baseline_outputs/
+run_outputs/
+data/raw_geo/
