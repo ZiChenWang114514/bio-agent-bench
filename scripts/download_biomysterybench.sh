@@ -10,6 +10,9 @@ Usage:
 Environment:
   BIOMYSTERY_ROOT   Output root. Default: /data3/zcwang/biomysterybench
   HF_ENDPOINT       Hugging Face mirror endpoint. Default: https://hf-mirror.com
+  BIOMYSTERY_FULL_ENDPOINT
+                    Endpoint for the gated full dataset. Default:
+                    https://huggingface.co
   HF_TOKEN          Required for the gated full dataset.
 
 Notes:
@@ -36,12 +39,24 @@ download_file() {
   local partial_path="${out_path}.partial"
   mkdir -p "$(dirname "${out_path}")"
 
+  if [[ -s "${out_path}" ]]; then
+    echo "Already downloaded: ${remote_path}"
+    return 0
+  fi
+
   local url="${ENDPOINT}/datasets/${repo}/resolve/main/${remote_path}"
   local curl_args=(--location --fail --retry 5 --retry-delay 2)
-  if [[ -n "${HF_TOKEN:-}" ]]; then
-    curl_args+=(--header "Authorization: Bearer ${HF_TOKEN}")
+  if [[ -f "${partial_path}" ]]; then
+    curl_args+=(--continue-at -)
   fi
-  curl "${curl_args[@]}" --output "${partial_path}" "${url}"
+  if [[ -n "${HF_TOKEN:-}" ]]; then
+    curl "${curl_args[@]}" \
+      --config <(printf 'header = "Authorization: Bearer %s"\n' "${HF_TOKEN}") \
+      --output "${partial_path}" \
+      "${url}"
+  else
+    curl "${curl_args[@]}" --output "${partial_path}" "${url}"
+  fi
   mv "${partial_path}" "${out_path}"
 }
 
@@ -63,6 +78,7 @@ case "${MODE}" in
       echo "  scripts/download_biomysterybench.sh full" >&2
       exit 1
     fi
+    ENDPOINT="${BIOMYSTERY_FULL_ENDPOINT:-https://huggingface.co}"
     OUT="${ROOT}/full"
     mkdir -p "${OUT}"
     for path in README.md LICENSE problems.csv problems.parquet; do
