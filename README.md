@@ -1,60 +1,72 @@
 # bio-agent-bench
 
-一个基于真实公开 GEO 已处理数据的小型生物信息学编程智能体评测。目标是测试智能体是否能在受控目录中读取数据、写脚本、做质控和统计分析、生成结果文件，并按固定 JSON 结构输出答案。
+一个面向真实公开组学数据的闭卷智能体评测仓库。目标：让模型在只读任务包中读取数据、写脚本、产出可复核结果，再输出统一 `submission.json`。
 
-本仓库是公开仓库。原始 GEO 下载、隐藏答案和本地评分材料都放在被 `.gitignore` 忽略的目录中，不提交到 GitHub。
+本仓库公开；原始 GEO 下载、隐藏答案与 evaluator 数据在 `.gitignore` 排除的目录里（例如 `.hidden/`）。
 
-## 最直接的测试方法
+## 最直接的测试方法（已更新为 3 个 BioMysteryBench 衍生任务）
 
-当前已经预创建好 8 个正式运行目录。你可以直接进入对应 `workspace/` 启动智能体。
+### 当前状态
 
-### 1. 进入某个工作目录
+✅ 任务和运行目录已就绪：可直接开始测试。任务清单与 `benchmark.yaml` 已对齐。
 
-DeepSeek / bulk 任务：
-
-```bash
-cd /data2/zcwang/homeworks/bio-agent-bench/runs/ccsds_bulk_001/geo_bulk_alms1_ko/workspace
-ccsds
-```
-
-Kimi / bulk 任务：
+### 推荐：先执行完整预检查
 
 ```bash
-cd /data2/zcwang/homeworks/bio-agent-bench/runs/ccskm_bulk_001/geo_bulk_alms1_ko/workspace
-ccskm
+cd /data2/zcwang/homeworks/bio-agent-bench
+
+# 1) 检查关键目录
+test -d runs/ccsds_reci_001/reci6iglwiertmyyk/workspace && echo OK
+test -d runs/ccskm_recy_001/recyolnajpygz2xeo/workspace && echo OK
+test -d runs/vvcc_rec4k_001/rec4kcr3oroe3jc1j/workspace && echo OK
+
+# 2) 检查任务包
+test -f tasks/reci6iglwiertmyyk/prompt.md && echo OK
+test -f tasks/recyolnajpygz2xeo/prompt.md && echo OK
+test -f tasks/rec4kcr3oroe3jc1j/prompt.md && echo OK
 ```
 
-Claude / bulk 任务：
+任一命令报错则先修复对应目录/任务，再开始大规模测试。
+
+### 1) 进入运行目录并启动模型（示例）
 
 ```bash
-cd /data2/zcwang/homeworks/bio-agent-bench/runs/vvcc_bulk_001/geo_bulk_alms1_ko/workspace
-vvcc
+# ccsds
+cd /data2/zcwang/homeworks/bio-agent-bench/runs/ccsds_reci_001/reci6iglwiertmyyk/workspace && ccsds
+cd /data2/zcwang/homeworks/bio-agent-bench/runs/ccsds_recy_001/recyolnajpygz2xeo/workspace && ccsds
+cd /data2/zcwang/homeworks/bio-agent-bench/runs/ccsds_rec4k_001/rec4kcr3oroe3jc1j/workspace && ccsds
+
+# ccskm
+cd /data2/zcwang/homeworks/bio-agent-bench/runs/ccskm_reci_001/reci6iglwiertmyyk/workspace && ccskm
+cd /data2/zcwang/homeworks/bio-agent-bench/runs/ccskm_recy_001/recyolnajpygz2xeo/workspace && ccskm
+cd /data2/zcwang/homeworks/bio-agent-bench/runs/ccskm_rec4k_001/rec4kcr3oroe3jc1j/workspace && ccskm
+
+# vvcc
+cd /data2/zcwang/homeworks/bio-agent-bench/runs/vvcc_reci_001/reci6iglwiertmyyk/workspace && vvcc
+cd /data2/zcwang/homeworks/bio-agent-bench/runs/vvcc_recy_001/recyolnajpygz2xeo/workspace && vvcc
+cd /data2/zcwang/homeworks/bio-agent-bench/runs/vvcc_rec4k_001/rec4kcr3oroe3jc1j/workspace && vvcc
+
+# mycd
+cd /data2/zcwang/homeworks/bio-agent-bench/runs/mycd_reci_001/reci6iglwiertmyyk/workspace && mycd
+cd /data2/zcwang/homeworks/bio-agent-bench/runs/mycd_recy_001/recyolnajpygz2xeo/workspace && mycd
+cd /data2/zcwang/homeworks/bio-agent-bench/runs/mycd_rec4k_001/rec4kcr3oroe3jc1j/workspace && mycd
+
+# codex（如你的环境有对应 run-id，可用 codex 启动）
+cd /data2/zcwang/homeworks/bio-agent-bench/runs/codex_reci_001/reci6iglwiertmyyk/workspace && codex
+cd /data2/zcwang/homeworks/bio-agent-bench/runs/codex_recy_001/recyolnajpygz2xeo/workspace && codex
+cd /data2/zcwang/homeworks/bio-agent-bench/runs/codex_rec4k_001/rec4kcr3oroe3jc1j/workspace && codex
 ```
 
-Codex / bulk 任务：
+> 说明：`codex` 为可选入口；如未有 `runs/codex_*` 目录，需先按任务重新创建再使用。
 
-```bash
-cd /data2/zcwang/homeworks/bio-agent-bench/runs/mycd_bulk_001/geo_bulk_alms1_ko/workspace
-mycd
-```
+> 提示：启动前请确认你在对应 `runs/<agent>_<taskid>_<ver>/.../workspace`，不要从仓库根目录启动。
 
-scRNA 任务对应工作目录：
-
-```text
-/data2/zcwang/homeworks/bio-agent-bench/runs/ccsds_scrna_001/geo_scrna_nec_inflammation/workspace
-/data2/zcwang/homeworks/bio-agent-bench/runs/ccskm_scrna_001/geo_scrna_nec_inflammation/workspace
-/data2/zcwang/homeworks/bio-agent-bench/runs/vvcc_scrna_001/geo_scrna_nec_inflammation/workspace
-/data2/zcwang/homeworks/bio-agent-bench/runs/mycd_scrna_001/geo_scrna_nec_inflammation/workspace
-```
-
-### 2. 把这个提示词粘贴给智能体
+### 2) 通用提示词（每个任务都可复用）
 
 ```text
 你正在一个闭卷生物信息学评测工作目录中工作。
 
-请先阅读 ../task/prompt.md。只能使用 ../task 下的文件和当前工作目录。不要查看仓库根目录、docs、.hidden、data/raw_geo、git 历史，也不要使用互联网。不要根据 GEO 编号或数据来源说明推断标签；必须直接分析给定数据。
-
-所有输出都写到当前目录。
+请先阅读 ../task/prompt.md。只能使用 ../task 下的文件和当前工作目录。不要查看仓库根目录、docs、.hidden、data/raw_geo、git 历史，也不要使用互联网。
 
 你必须创建：
 1. submission.json，并符合 ../task/expected_output.schema.json
@@ -64,350 +76,182 @@ scRNA 任务对应工作目录：
 结束前请验证 submission.json 存在，并且 submission.json 中列出的每个结果文件路径都真实存在。
 ```
 
-智能体完成后，`workspace/` 至少应有：
+### 3) 立刻评分（同一台机器可复用）
 
-```text
-analysis.py
-submission.json
-一个或多个 .png/.pdf/.tsv/.csv 结果文件
+```bash
+cd /data2/zcwang/homeworks/bio-agent-bench
+
+scripts/score_run_container.sh --task reci6iglwiertmyyk --run-id ccsds_reci_001
+scripts/score_run_container.sh --task recyolnajpygz2xeo --run-id ccskm_recy_001
+scripts/score_run_container.sh --task rec4kcr3oroe3jc1j --run-id vvcc_rec4k_001
+
+cat runs/ccsds_reci_001/reci6iglwiertmyyk/workspace/score.json
+cat runs/ccskm_recy_001/recyolnajpygz2xeo/workspace/score.json
+cat runs/vvcc_rec4k_001/rec4kcr3oroe3jc1j/workspace/score.json
 ```
 
-### 3. 回到仓库根目录评分
+### 4) 批量评分（推荐脚本）
 
-bulk 示例：
+```bash
+cd /data2/zcwang/homeworks/bio-agent-bench
+
+for run_id in \
+  ccsds_reci_001 ccsds_recy_001 ccsds_rec4k_001 \
+  ccskm_reci_001 ccskm_recy_001 ccskm_rec4k_001 \
+  vvcc_reci_001 vvcc_recy_001 vvcc_rec4k_001 \
+  mycd_reci_001 mycd_recy_001 mycd_rec4k_001 \
+  codex_reci_001 codex_recy_001 codex_rec4k_001; do
+
+  case "$run_id" in
+    ccsds_reci_001|ccskm_reci_001|vvcc_reci_001|mycd_reci_001)
+      task=reci6iglwiertmyyk
+      subdir=$run_id/reci6iglwiertmyyk
+      ;;
+    ccsds_recy_001|ccskm_recy_001|vvcc_recy_001|mycd_recy_001)
+      task=recyolnajpygz2xeo
+      subdir=$run_id/recyolnajpygz2xeo
+      ;;
+    ccsds_rec4k_001|ccskm_rec4k_001|vvcc_rec4k_001|mycd_rec4k_001)
+      task=rec4kcr3oroe3jc1j
+      subdir=$run_id/rec4kcr3oroe3jc1j
+      ;;
+  esac
+
+  if [ -d "runs/$subdir/workspace" ]; then
+    scripts/score_run_container.sh --task "$task" --run-id "$run_id"
+    echo "--- ${run_id} score ---"
+    cat runs/$subdir/workspace/score.json
+  else
+    echo "skip ${run_id}: workspace missing"
+  fi
+done
+```
 
 ```bash
 cd /data2/zcwang/homeworks/bio-agent-bench
 
 scripts/score_run_container.sh \
-  --task geo_bulk_alms1_ko \
-  --run-id ccsds_bulk_001
+  --task reci6iglwiertmyyk \
+  --run-id ccsds_reci_001
 
-cat runs/ccsds_bulk_001/geo_bulk_alms1_ko/workspace/score.json
+cat runs/ccsds_reci_001/reci6iglwiertmyyk/workspace/score.json
 ```
 
-scRNA 示例：
+（同理可替换为 `recyolnajpygz2xeo`、`rec4kcr3oroe3jc1j`）
 
-```bash
-cd /data2/zcwang/homeworks/bio-agent-bench
+## 运行目录约定
 
-scripts/score_run_container.sh \
-  --task geo_scrna_nec_inflammation \
-  --run-id ccsds_scrna_001
+本次主线已预创建 12 个 `workspace` 目录（4 个模型 × 3 个任务）：
 
-cat runs/ccsds_scrna_001/geo_scrna_nec_inflammation/workspace/score.json
-```
+- `runs/ccsds_reci_001/reci6iglwiertmyyk/`
+- `runs/ccskm_reci_001/reci6iglwiertmyyk/`
+- `runs/vvcc_reci_001/reci6iglwiertmyyk/`
+- `runs/mycd_reci_001/reci6iglwiertmyyk/`
 
-只需要把 `--run-id` 换成对应模型即可，例如 `ccskm_bulk_001`、`vvcc_scrna_001`、`mycd_bulk_001`。
+- `runs/ccsds_recy_001/recyolnajpygz2xeo/`
+- `runs/ccskm_recy_001/recyolnajpygz2xeo/`
+- `runs/vvcc_recy_001/recyolnajpygz2xeo/`
+- `runs/mycd_recy_001/recyolnajpygz2xeo/`
 
-## 本机智能体命令
+- `runs/ccsds_rec4k_001/rec4kcr3oroe3jc1j/`
+- `runs/ccskm_rec4k_001/rec4kcr3oroe3jc1j/`
+- `runs/vvcc_rec4k_001/rec4kcr3oroe3jc1j/`
+- `runs/mycd_rec4k_001/rec4kcr3oroe3jc1j/`
 
-| 命令 | 实际用途 | 建议对比标签 |
-|---|---|---|
-| `ccsds` | 通过 DeepSeek V4 服务运行 Claude Code | `deepseek` |
-| `ccskm` | 通过 Kimi/Moonshot 服务运行 Claude Code | `kimi` |
-| `vvcc` | 通过本地 VVCC 代理运行 Claude Code | `claude` |
-| `mycd` | Codex 命令行封装 | `codex` |
-
-这些命令需要访问各自模型服务，所以不直接放进 `--network none` 的 Docker 智能体容器里跑。实际测试时使用 `runs/<run-id>/<task>/workspace` 作为干净工作目录，让智能体只能按提示使用 `../task` 和当前目录。
-
-不要从仓库根目录启动智能体。否则智能体可能看到 `docs/`、原始 GEO 下载、本地隐藏答案或 git 历史。
-
-## 已预创建的运行目录
-
-bulk 任务：
-
-```text
-runs/ccsds_bulk_001/geo_bulk_alms1_ko/
-runs/ccskm_bulk_001/geo_bulk_alms1_ko/
-runs/vvcc_bulk_001/geo_bulk_alms1_ko/
-runs/mycd_bulk_001/geo_bulk_alms1_ko/
-```
-
-scRNA 任务：
-
-```text
-runs/ccsds_scrna_001/geo_scrna_nec_inflammation/
-runs/ccskm_scrna_001/geo_scrna_nec_inflammation/
-runs/vvcc_scrna_001/geo_scrna_nec_inflammation/
-runs/mycd_scrna_001/geo_scrna_nec_inflammation/
-```
-
-每个运行目录下都有：
+每个目录包含：
 
 ```text
 task/
 workspace/
 ```
 
-`task/` 是只读任务包，包含：
+`task/` 为只读输入包；`workspace/` 用于输出。
 
-```text
-prompt.md
-expected_output.schema.json
-public_notes.md
-data/
-```
-
-`workspace/` 是智能体输出目录。正式运行的 `workspace/` 初始为空。
-
-## 重新创建运行目录
-
-如果要重新生成某个运行目录，使用：
+### 重新创建某个运行目录
 
 ```bash
-cd /data2/zcwang/homeworks/bio-agent-bench
-
-scripts/run_task_container.sh \
-  --task geo_bulk_alms1_ko \
-  --run-id ccsds_bulk_001 \
-  --command "true"
+scripts/run_task_container.sh --task reci6iglwiertmyyk --run-id ccsds_reci_001 --command "true"
+scripts/run_task_container.sh --task recyolnajpygz2xeo --run-id ccsds_recy_001 --command "true"
+scripts/run_task_container.sh --task rec4kcr3oroe3jc1j --run-id ccsds_rec4k_001 --command "true"
 ```
 
-scRNA：
+## 本机智能体命令
 
-```bash
-scripts/run_task_container.sh \
-  --task geo_scrna_nec_inflammation \
-  --run-id ccsds_scrna_001 \
-  --command "true"
-```
+| 命令 | 用途 |
+|---|---|
+| `ccsds` | DeepSeek（当前绑定） |
+| `ccskm` | Kimi/Moonshot |
+| `vvcc` | 本地 VVCC |
+| `mycd` | Codex |
+| `codex` | OpenAI Codex |
 
-注意：这个命令会重建该运行的 `task/` 任务包；`workspace/` 目录会保留，应手动确认是否需要清空旧输出。
+## 任务清单（当前主线）
 
-## 建议运行矩阵
+### `reci6iglwiertmyyk`
 
-```bash
-# bulk 任务
-scripts/run_task_container.sh --task geo_bulk_alms1_ko --run-id ccsds_bulk_001 --command "true"
-scripts/run_task_container.sh --task geo_bulk_alms1_ko --run-id ccskm_bulk_001 --command "true"
-scripts/run_task_container.sh --task geo_bulk_alms1_ko --run-id vvcc_bulk_001 --command "true"
-scripts/run_task_container.sh --task geo_bulk_alms1_ko --run-id mycd_bulk_001 --command "true"
+- 数据：`tasks/reci6iglwiertmyyk/data/public_geo/matrixTpm_anonymized.tsv`
+- 类型：RNA-seq 敲低样本识别
+- 目标：识别哪一个 sample 是 32 个敲低样本中的目标样本（仅可从数据中推断）
 
-# scRNA 任务
-scripts/run_task_container.sh --task geo_scrna_nec_inflammation --run-id ccsds_scrna_001 --command "true"
-scripts/run_task_container.sh --task geo_scrna_nec_inflammation --run-id ccskm_scrna_001 --command "true"
-scripts/run_task_container.sh --task geo_scrna_nec_inflammation --run-id vvcc_scrna_001 --command "true"
-scripts/run_task_container.sh --task geo_scrna_nec_inflammation --run-id mycd_scrna_001 --command "true"
-```
+### `recyolnajpygz2xeo`
 
-然后分别进入每个 `workspace/` 启动对应智能体。
+- 数据：`tasks/recyolnajpygz2xeo/data/public_geo/sample*.bed`
+- 类型：ChIP-seq 峰文件归因
+- 目标：识别 30 个匿名峰集里哪一个属于转录因子（TF）ChIP
 
-## 任务列表
+### `rec4kcr3oroe3jc1j`
 
-### `geo_bulk_alms1_ko`
+- 数据：`tasks/rec4kcr3oroe3jc1j/data/public_geo/RHYTHMIC.txt`
+- 类型：周期性基因识别
+- 目标：识别 24h 周期性最强的基因
 
-数据来自 GEO 系列 GSE209844 的已处理 bulk RNA-seq 文件。任务包中样本标签已盲化。
-
-输入文件：
-
-- `counts.tsv`：原始计数矩阵，基因 × 盲化样本。
-- `rlog.tsv`：DESeq2 rlog 归一化表达矩阵。
-- `sample_sheet.tsv`：盲化样本组和重复编号。
-- `gene_annotations.tsv`：Ensembl 基因 ID 和基因符号。
-
-问题：
-
-> 两个盲化组中，一个是 ALMS1 敲除组，一个是野生型组。判断哪个 `blinded_group` 是 ALMS1 敲除组。
-
-期望智能体行为：
-
-- 用终端读取表达矩阵和元数据。
-- 写分析脚本。
-- 比较 ALMS1 表达或组间差异。
-- 生成至少一个 QC/统计结果文件。
-- 输出符合 JSON 结构约束的 `submission.json`。
-
-### `geo_scrna_nec_inflammation`
-
-数据来自 GEO 系列 GSE178088 的已处理 `.h5ad` 文件。原始样本和队列名称已盲化。
-
-输入文件：
-
-- `adata.h5ad`：单细胞表达对象。
-- `metadata.tsv`：从 `adata.obs` 导出的细胞级元数据。
-- `sample_sheet.tsv`：盲化样本的细胞数汇总。
-- `gene_annotations.tsv`：基因符号。
-
-问题：
-
-> 哪个盲化队列表现出最强的炎症相关异常？
-
-期望智能体行为：
-
-- 用 `anndata` 或等价方法读取 `.h5ad`。
-- 按 `blinded_cohort` 汇总 QC 和标记基因表达。
-- 使用炎症标记基因，例如 `IL1B`、`CXCL8`、`S100A8`、`S100A9`、`TREM1`。
-- 生成至少一个 QC/统计结果文件。
-- 输出符合 JSON 结构约束的 `submission.json`。
+> 说明：仓库还保留了原始的 GEO 课程任务文件（`geo_bulk_alms1_ko`, `geo_scrna_nec_inflammation`）用于兼容性参考；当前 `benchmark.yaml` 任务入口已切到上面三条。
 
 ## 提交格式
 
-智能体必须写出一个 JSON 对象，文件名为：
-
-```text
-submission.json
-```
-
-顶层字段固定为：
+`submission.json` 顶层至少包含：
 
 - `task_id`
-- `answer`
+- `answer`（含 `anomaly_type`, `anomalous_group`, `rationale`）
 - `confidence`
 - `evidence`
 - `artifacts`
 - `commands_summary`
 
-每个任务的完整 JSON 结构约束在：
+结构定义见各任务目录下 `expected_output.schema.json`。
 
-```text
-tasks/<task_id>/expected_output.schema.json
-```
+## 评分
 
-## 评分方法
+默认总分 100（见 `src/bio_agent_bench/score.py`）：
 
-评分是程序化隐藏答案评分，不使用 LLM 裁判。
-
-默认总分 100：
-
-- `answer`：50 分
-  - `anomaly_type` 正确：25 分
-  - `anomalous_group` 正确：25 分
-- `evidence`：20 分
-  - `evidence` 条目数量和 `key_statistics` 数值统计量。
-- `artifacts`：15 分
-  - 检查 `submission.json` 中列出的结果文件是否真实存在且非空。
-- `process`：15 分
-  - 检查 `commands_summary` 和可选过程日志中是否有实际分析痕迹。
-
-评分脚本：
+- `answer`（50）
+- `evidence`（20）
+- `artifacts`（15）
+- `process`（15）
 
 ```bash
-scripts/score_run_container.sh \
-  --task geo_bulk_alms1_ko \
-  --run-id ccsds_bulk_001
+scripts/score_run_container.sh --task reci6iglwiertmyyk --run-id ccsds_reci_001
 ```
 
-直接调用评分器也可以：
+带过程日志时可加 `--process-log`。
+
+## 评测入口（示例）
 
 ```bash
-python scripts/score_submission.py \
-  --task-root tasks/geo_bulk_alms1_ko/data/public_geo \
-  --submission examples/baseline_outputs/geo_bulk/submission.json \
-  --answer .hidden/geo_answers/geo_bulk_alms1_ko_answer.hidden.json
+scripts/run_task_container.sh --task reci6iglwiertmyyk --run-id model_a --command "true"
+scripts/run_task_container.sh --task recyolnajpygz2xeo --run-id model_b --command "true"
+scripts/run_task_container.sh --task rec4kcr3oroe3jc1j --run-id model_c --command "true"
 ```
 
-隐藏答案位于 `.hidden/geo_answers/`，不会提交到 GitHub，也不会挂载给智能体。
+## BioMysteryBench 参考与扩展
 
-## 可选：记录过程日志
+- `docs/biomysterybench_full_task_guide_cn.md`：99 题题面与评分提示（基于 `/data3/zcwang/biomysterybench/full/problems.csv`）。
+- 若要对任务集继续扩容，可继续从 `problems.csv` 按现有 task 模板新增。
 
-如果终端支持，可以用 `script` 记录交互过程：
-
-```bash
-cd runs/ccsds_bulk_001/geo_bulk_alms1_ko/workspace
-script -q -f process.log -c "ccsds"
-```
-
-评分时传入过程日志：
-
-```bash
-cd /data2/zcwang/homeworks/bio-agent-bench
-
-scripts/score_run_container.sh \
-  --task geo_bulk_alms1_ko \
-  --run-id ccsds_bulk_001 \
-  --process-log runs/ccsds_bulk_001/geo_bulk_alms1_ko/workspace/process.log
-```
-
-## Docker 沙箱
-
-构建智能体和评分器镜像：
+## Docker
 
 ```bash
 scripts/build_docker_images.sh
+scripts/run_task_container.sh --task reci6iglwiertmyyk --run-id model_a
+scripts/score_run_container.sh --task reci6iglwiertmyyk --run-id model_a
 ```
-
-生成闭卷任务包：
-
-```bash
-scripts/run_task_container.sh \
-  --task geo_bulk_alms1_ko \
-  --run-id model_a_bulk \
-  --command "true"
-```
-
-如果只想进入 Docker 智能体沙箱：
-
-```bash
-scripts/run_task_container.sh \
-  --task geo_bulk_alms1_ko \
-  --run-id model_a_bulk
-```
-
-评分：
-
-```bash
-scripts/score_run_container.sh \
-  --task geo_bulk_alms1_ko \
-  --run-id model_a_bulk
-```
-
-规范配置在：
-
-```text
-benchmark.yaml
-docs/sandbox.md
-```
-
-## 安装本地 Python 环境
-
-建议使用隔离环境。某些 conda base 环境可能有 NumPy ABI 混用问题。
-
-```bash
-python -m venv .venv
-source .venv/bin/activate
-python -m pip install -U pip
-python -m pip install -e ".[dev]"
-```
-
-运行测试：
-
-```bash
-.venv/bin/python -m pytest
-```
-
-## 准备 GEO 数据
-
-仓库已经提交了处理后的盲化公开任务数据。只有在你要从原始 GEO 补充文件重新生成任务包时，才需要执行本节。
-
-下载原始 GEO 补充文件到 `data/raw_geo/`：
-
-```bash
-mkdir -p data/raw_geo/GSE209844 data/raw_geo/GSE178088
-curl -L -o data/raw_geo/GSE209844/GSE209844_CountMatrixMerged.txt.gz \
-  https://ftp.ncbi.nlm.nih.gov/geo/series/GSE209nnn/GSE209844/suppl/GSE209844_CountMatrixMerged.txt.gz
-curl -L -o data/raw_geo/GSE209844/GSE209844_NormalizedCountMatrix_rlog.txt.gz \
-  https://ftp.ncbi.nlm.nih.gov/geo/series/GSE209nnn/GSE209844/suppl/GSE209844_NormalizedCountMatrix_rlog.txt.gz
-curl -L -o data/raw_geo/GSE209844/GSE209844_RNA-seq_results_DESeq2.txt.gz \
-  https://ftp.ncbi.nlm.nih.gov/geo/series/GSE209nnn/GSE209844/suppl/GSE209844_RNA-seq_results_DESeq2.txt.gz
-curl -L -o data/raw_geo/GSE178088/GSE178088_cluster3.h5ad.gz \
-  https://ftp.ncbi.nlm.nih.gov/geo/series/GSE178nnn/GSE178088/suppl/GSE178088_cluster3.h5ad.gz
-```
-
-重新生成盲化任务数据和本地隐藏答案：
-
-```bash
-python scripts/prepare_geo_tasks.py
-```
-
-`data/raw_geo/` 和 `.hidden/` 都被 gitignore，不会提交。
-
-## 重要对比规则
-
-- 每个模型和任务使用一个新的 `--run-id`。
-- 不要从仓库根目录启动智能体。
-- 不要把 `.hidden/`、`data/raw_geo/`、`docs/data_sources.md` 提供给智能体。
-- 不要把闭卷运行和开放世界运行混在同一张分数表里。
-- 所有被比较的智能体应使用同一份任务包、同一套超时策略、同一个评分脚本提交版本和同一个隐藏答案文件。
-- 智能体可以访问自己的模型服务，但不应该浏览外部数据源。
-- 如果要测允许联网检索的开放世界智能体，应单独建立排行榜。
